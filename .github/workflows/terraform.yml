@@ -13,7 +13,6 @@ jobs:
     name: "Terraform Pipeline"
     runs-on: ubuntu-latest
 
-    # Use specific permissions if using GCP Workload Identity Federation (recommended)
     permissions:
       contents: read
       pull-requests: write
@@ -23,26 +22,34 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Setup Terraform version
+      # 2. Authenticate to Google Cloud via WIF (Keyless Auth)
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/${{ secrets.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'tf-cicd-sa@project-f2f5392b-abfa-4181-b85.iam.gserviceaccount.com'
+          create_credentials_file: true
+
+      # 3. Setup Terraform version
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.6.0"
 
-      # 3. Initialize Terraform (connects to your GCS backend automatically)
+      # 4. Initialize Terraform
       - name: Terraform Init
         run: terraform init
 
-      # 4. Run Terraform Validate
+      # 5. Run Terraform Validate
       - name: Terraform Validate
         run: terraform validate
 
-      # 5. Run Terraform Plan (runs on both PRs and pushes)
+      # 6. Run Terraform Plan
       - name: Terraform Plan
         run: terraform plan -no-color
         continue-on-error: false
 
-      # 6. Run Terraform Apply (ONLY runs on merges to main branch)
+      # 7. Run Terraform Apply (ONLY runs on pushes to main)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-press
+        run: terraform apply -auto-approve
