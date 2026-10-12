@@ -13,9 +13,10 @@ jobs:
     name: "Terraform Pipeline"
     runs-on: ubuntu-latest
 
-    permissions:
+permissions:
       contents: read
       pull-requests: write
+      id-token: write  # Required for Workload Identity Federation OIDC token exchange
 
     steps:
       # 1. Checkout repository code
