@@ -45,3 +45,11 @@ resource "google_bigquery_table" "customer_status_tf" {
   ])
 }
 
+resource "google_bigquery_dataset" "enterprise_analytics" {
+  dataset_id                  = "enterprise_analytics_ds"
+  friendly_name               = "Enterprise Analytics Dataset"
+  description                 = "Dataset for client analytics reporting"
+  location                    = "US"
+  delete_contents_on_destroy  = false
+}
+
